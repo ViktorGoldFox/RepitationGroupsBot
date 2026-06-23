@@ -51,3 +51,8 @@ async def bot_help(message: types.Message):
     )
 
     logger.debug("Sent /help response to user_id=%s", message.from_user.id)
+
+
+@base_router.message(F.text == "hic es?")
+async def hic_es(message: types.Message):
+    await message.reply("Hic et nunc!")
