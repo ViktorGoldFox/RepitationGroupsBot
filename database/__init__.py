@@ -1,38 +1,56 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_scoped_session, async_sessionmaker
-from Core import config as core_settings
-
 from asyncio import current_task
 
+from logzero import logger
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_scoped_session,
+    async_sessionmaker,
+    create_async_engine,
+)
+
+from Core import config as core_settings
 from database.models import Base
 
-from logzero import logger
 
 class db:
     def __init__(self):
+        logger.info("Creating database engine")
         self.engine = create_async_engine(
-            url=core_settings.db.url,
-            echo=core_settings.db.echo
+            url=core_settings.db.url, echo=core_settings.db.echo
         )
 
         self.session_maker = async_sessionmaker(
             bind=self.engine,
             autoflush=core_settings.db.autoflush,
-            expire_on_commit=core_settings.db.expire_on_commit
+            expire_on_commit=core_settings.db.expire_on_commit,
         )
 
-    def get_scoped_session(self):
+    def get_scoped_session(self) -> AsyncSession:
+        logger.debug("Creating scoped DB session")
         session = async_scoped_session(
-            session_factory=self.session_maker,
-            scopefunc=current_task
+            session_factory=self.session_maker, scopefunc=current_task
         )
 
         return session
 
     async def close(self):
+        logger.info("Disposing database engine")
         await self.engine.dispose()
 
     async def on_startup(self):
+        logger.info("Ensuring database schema exists")
         async with self.engine.begin() as conn:
-            await conn.run_sync(models.Base.metadata.create_all)
+            await conn.run_sync(Base.metadata.create_all)
+            if conn.dialect.name == "postgresql":
+                await conn.execute(
+                    text("ALTER TABLE users ALTER COLUMN t_user_name DROP NOT NULL")
+                )
+                await conn.execute(
+                    text(
+                        "ALTER TABLE users ADD COLUMN IF NOT EXISTS t_user_fullname VARCHAR NOT NULL DEFAULT ''"
+                    )
+                )
+
 
 db_helper = db()

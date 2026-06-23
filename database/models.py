@@ -1,13 +1,13 @@
 from typing import List
+from datetime import datetime
 
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
     declared_attr,
     mapped_column,
     relationship,
-    relationships,
 )
 
 
@@ -23,26 +23,29 @@ class GroupUser(Base):
     __tablename__ = "group_users"
 
     group_id: Mapped[int] = mapped_column(
-        ForeignKey("groups.id"),
+        ForeignKey("groups.t_chat_id"),
         primary_key=True,
     )
 
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
+        ForeignKey("users.t_user_id"),
         primary_key=True,
     )
 
-    group: Mapped["Groups"] = relationship(back_populates="members")
+    group: Mapped["Groups"] = relationship(back_populates="users")
 
     user: Mapped["Users"] = relationship(back_populates="groups")
 
 
 class Users(Base):
     t_user_id: Mapped[int] = mapped_column(unique=True, primary_key=True)
-    t_user_name: Mapped[str]
+    t_user_name: Mapped[str | None]
+    t_user_fullname: Mapped[str]
+
+    repitation: Mapped[float] = mapped_column(default=10.0)
 
     groups: Mapped[List["GroupUser"]] = relationship(
-        back_populates="user", cascase="all, delete-orphan"
+        back_populates="user", cascade="all, delete-orphan"
     )
 
 
@@ -56,3 +59,15 @@ class Groups(Base):
 
 class Admins(Base):
     t_user_id: Mapped[int] = mapped_column(unique=True, primary_key=True)
+
+
+class RepitationActions(Base):
+    __tablename__ = "repitation_actions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    t_chat_id: Mapped[int] = mapped_column(index=True)
+    t_user_id: Mapped[int] = mapped_column(index=True)
+    action: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), index=True
+    )
