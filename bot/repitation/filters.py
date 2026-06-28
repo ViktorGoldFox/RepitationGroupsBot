@@ -180,7 +180,7 @@ class IsAdmin(Filter):
                 message.chat.id,
                 member.status,
             )
-            await message.reply("Команда /setrep доступна только администраторам группы.")
+            await message.reply("Эта команда доступна только администраторам группы.")
             return False
 
         logger.debug(

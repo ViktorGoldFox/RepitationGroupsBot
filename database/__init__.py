@@ -1,7 +1,6 @@
 from asyncio import current_task
 
 from logzero import logger
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_scoped_session,
@@ -42,15 +41,6 @@ class db:
         logger.info("Ensuring database schema exists")
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-            if conn.dialect.name == "postgresql":
-                await conn.execute(
-                    text("ALTER TABLE users ALTER COLUMN t_user_name DROP NOT NULL")
-                )
-                await conn.execute(
-                    text(
-                        "ALTER TABLE users ADD COLUMN IF NOT EXISTS t_user_fullname VARCHAR NOT NULL DEFAULT ''"
-                    )
-                )
 
 
 db_helper = db()

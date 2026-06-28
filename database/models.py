@@ -1,5 +1,6 @@
-from typing import List
 from datetime import datetime
+from enum import auto
+from typing import List
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import (
@@ -70,4 +71,24 @@ class RepitationActions(Base):
     action: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now(), index=True
+    )
+
+
+class Rest(Base):
+    __tablename__ = "rests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
+    t_chat_id: Mapped[int]
+    target_t_user_id: Mapped[int] = mapped_column(unique=True)
+    target_display: Mapped[str | None] = mapped_column(nullable=True)
+    issued_by: Mapped[int] = mapped_column()
+    issued_by_display: Mapped[str | None] = mapped_column(nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), index=True
+    )
+
+    end_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
     )

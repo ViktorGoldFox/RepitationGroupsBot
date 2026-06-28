@@ -2,8 +2,9 @@ from aiogram import Bot, Dispatcher
 from logzero import logger
 
 from bot.base.router import base_router
-from bot.repitation.router import repitation_router
 from bot.middlewares import LoggingMiddleware
+from bot.repitation.router import repitation_router
+from bot.rest.router import rest_router
 from Core import config
 
 
@@ -16,6 +17,7 @@ class TelegramBot:
         self.dp.message.middleware(LoggingMiddleware())
         self.dp.include_router(base_router)
         self.dp.include_router(repitation_router)
+        self.dp.include_router(rest_router)
 
     async def on_startup(self):
         logger.info("Registering routers and middlewares")
